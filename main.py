@@ -6,6 +6,7 @@ import numpy as np
 # Load model
 modelKlasifikasi = joblib.load("Model\classification\model_klasifikasi.pkl")
 modelClustering = joblib.load("Model\clustering\model_clustering.pkl")
+label_encoder = joblib.load("Model\classification\encoder.joblib")
 
 # Inisialisasi aplikasi
 app = FastAPI()
@@ -55,14 +56,14 @@ def predict(data: InputData):
         if len(saran) > 1:
             return {"prediction": PTN.tolist(), 
                     "message": saran}
-        else :
-            return {"prediction": PTN.tolist()}
     elif cluster[0] == 0 or RATAAN < 750:
         for i in range(len(nilai)):
             if nilai[i] < 700:
                 saran.extend(belajar[fitur[i]])
         PTN_array = np.array([[RATAAN, SBAKU, MIN, MAX]])
         PTN = modelKlasifikasi.predict(PTN_array)
+        PTN = np.argmax(PTN, axis=1)
+        PTN = label_encoder.inverse_transform(PTN)
         if len(saran) > 1:
             return {"prediction": PTN.tolist(), 
                     "message": saran}
@@ -71,4 +72,6 @@ def predict(data: InputData):
     else:
         PTN_array = np.array([[RATAAN, SBAKU, MIN, MAX]])
         PTN = modelKlasifikasi.predict(PTN_array)
+        PTN = np.argmax(PTN, axis=1)
+        PTN = label_encoder.inverse_transform(PTN)
         return {"prediction": PTN.tolist()}
